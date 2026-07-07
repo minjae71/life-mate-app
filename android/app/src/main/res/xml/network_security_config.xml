@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  서울 열린데이터광장 지하철 실시간 API는 http만 지원하므로, 이 도메인에 한해
+  cleartext(HTTP) 통신을 허용합니다. 그 외 도메인은 기본(보안) 정책이 유지됩니다.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">swopenapi.seoul.go.kr</domain>
+    </domain-config>
+</network-security-config>

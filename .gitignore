@@ -1,0 +1,25 @@
+# 의존성
+node_modules
+
+# 웹 빌드 산출물
+dist
+
+# 환경변수 (실제 API 키). 템플릿은 .env.example 로 커밋합니다.
+.env
+.env.*
+!.env.example
+
+# IDE / 에디터
+.idea/
+.vscode/
+*.iml
+
+# OS 생성 파일
+.DS_Store
+Thumbs.db
+
+# 로컬 전용 APK 빌드 스크립트 (임시)
+android/_build_apk.bat
+
+# Android 빌드 산출물(build/, .gradle/, local.properties, 복사된 웹 자산,
+# capacitor 생성 파일, *.apk 등)은 android/.gitignore 에서 관리됩니다.

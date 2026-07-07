@@ -1,0 +1,127 @@
+/* -----------------------------------------------------------------------------
+ * 디자인 토큰 (라이트/다크 공용). 각 화면의 색상은 하드코딩 대신 이 변수를 씁니다.
+ * 다크 전환은 <html data-theme="dark"> 로 이루어집니다. (src/utils/theme.js)
+ * --------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #f3f4f6;
+  --surface-alt: #fafafa;
+
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+  --border-subtle: #eef0f2;
+
+  --text: #111827;
+  --text-body: #374151;
+  --text-muted: #6b7280;
+  --text-faint: #9ca3af;
+  --text-placeholder: #c0c4cc;
+
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --accent-weak-bg: #eff6ff;
+  --accent-weak-border: #bfdbfe;
+  --accent-chip-bg: #dbeafe;
+  --accent-chip-text: #2563eb;
+
+  --danger: #dc2626;
+  --danger-border: #fca5a5;
+  --success: #059669;
+  --success-strong: #065f46;
+  --success-bg: #d1fae5;
+
+  --purple: #7c3aed;
+  --purple-bg: #f3e8ff;
+  --purple-chip-bg: #e9d5ff;
+  --purple-weak-bg: #faf5ff;
+  --purple-border: #e9d5ff;
+  --purple-border-strong: #d8b4fe;
+
+  --overlay: rgba(15, 23, 42, 0.45);
+  --shadow: rgba(15, 23, 42, 0.18);
+  --shadow-lg: rgba(15, 23, 42, 0.22);
+
+  --brand-grad-a: #2563eb;
+  --brand-grad-b: #1d4ed8;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0b1120;
+  --surface: #1e293b;
+  --surface-2: #182234;
+  --surface-3: #334155;
+  --surface-alt: #172033;
+
+  --border: #334155;
+  --border-strong: #475569;
+  --border-subtle: #273244;
+
+  --text: #f1f5f9;
+  --text-body: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-faint: #7c8aa0;
+  --text-placeholder: #556074;
+
+  --accent: #3b82f6;
+  --accent-strong: #60a5fa;
+  --accent-weak-bg: #172554;
+  --accent-weak-border: #1e40af;
+  --accent-chip-bg: #1e3a8a;
+  --accent-chip-text: #93c5fd;
+
+  --danger: #f87171;
+  --danger-border: #7f1d1d;
+  --success: #34d399;
+  --success-strong: #6ee7b7;
+  --success-bg: #064e3b;
+
+  --purple: #a78bfa;
+  --purple-bg: #3b2f5c;
+  --purple-chip-bg: #4c3a72;
+  --purple-weak-bg: #241d38;
+  --purple-border: #4c3a72;
+  --purple-border-strong: #6d28d9;
+
+  --overlay: rgba(0, 0, 0, 0.6);
+  --shadow: rgba(0, 0, 0, 0.5);
+  --shadow-lg: rgba(0, 0, 0, 0.6);
+
+  --brand-grad-a: #3b82f6;
+  --brand-grad-b: #1d4ed8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-body);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Noto Sans KR', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* 입력 컨트롤이 테마 배경에 묻히지 않도록 */
+input,
+select,
+textarea {
+  color: var(--text);
+}

@@ -1,0 +1,19 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="60"
+    android:viewportHeight="60">
+    <!-- 시계 원 -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeAlpha="0.85"
+        android:pathData="M30,7 a23,23 0 1,0 0,46 a23,23 0 1,0 0,-46 Z" />
+    <!-- 시침/분침 -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M30,16 V30 L39,35" />
+</vector>
