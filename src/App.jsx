@@ -9,9 +9,11 @@ import HolidayManager from './components/HolidayManager';
 import TodoList from './components/TodoList';
 import WorkoutLog from './components/WorkoutLog';
 import MapleMvpCalculator from './components/MapleMvpCalculator';
-import FcFeeCalculator from './components/FcFeeCalculator';
+import FcOnline from './components/FcOnline';
 import DateCalculator from './components/DateCalculator';
 import LoanMemo from './components/LoanMemo';
+import InstaUnfollowChecker from './components/InstaUnfollowChecker';
+import LottoGenerator from './components/LottoGenerator';
 
 // 앱 메뉴 목록. 기능을 추가하려면 여기에 항목(+ Component)을 늘리면 됩니다.
 const MENUS = [
@@ -58,11 +60,11 @@ const MENUS = [
     Component: MapleMvpCalculator,
   },
   {
-    id: 'fcfee',
+    id: 'fconline',
     icon: '⚽',
-    title: 'FC온라인 수수료 계산기',
-    desc: '이적시장 판매 실수령·목표 등록가 계산',
-    Component: FcFeeCalculator,
+    title: 'FC온라인',
+    desc: '훈련코치·집중훈련 기록 + 이적 수수료 계산',
+    Component: FcOnline,
   },
   {
     id: 'datecalc',
@@ -77,6 +79,20 @@ const MENUS = [
     title: '정산 관리',
     desc: '사람별 상세 내역 입력·합산 관리',
     Component: LoanMemo,
+  },
+  {
+    id: 'insta',
+    icon: '📷',
+    title: '인스타 언팔로워 확인',
+    desc: '내 정보 다운로드(JSON)로 안 맞팔 분석 · 기기 내 처리',
+    Component: InstaUnfollowChecker,
+  },
+  {
+    id: 'lotto',
+    icon: '🎰',
+    title: '로또/연금복권 번호 생성',
+    desc: '랜덤·통계·생일·AI · 실회차 통계 내장 · 기기 내 처리',
+    Component: LottoGenerator,
   },
 ];
 

@@ -12,8 +12,10 @@ export const DATA_GROUPS = [
   },
   { id: 'holidays', label: '공휴일 (직접 등록)', keys: ['workhours:customHolidays'] },
   { id: 'maplemvp', label: '메이플 MVP (기준·입력값)', keys: ['maple:mvp:grades', 'maple:mvp:state'] },
-  { id: 'fcfee', label: 'FC온라인 수수료 (입력값)', keys: ['fc:fee:state'] },
+  { id: 'fconline', label: 'FC온라인 (수수료·훈련 기록)', keys: ['fc:fee:state', 'fc:training', 'fc:abilities'] },
   { id: 'loan', label: '정산 관리', keys: ['loan:people'] },
+  { id: 'insta', label: '인스타 분석 기록', keys: ['insta:snapshots'] },
+  { id: 'lotto', label: '로또/연금복권 (추가 회차·생성 기록)', keys: ['lotto:extraDraws', 'lotto:genHistory'] },
 ];
 
 // 특정 기능 그룹의 데이터만 삭제

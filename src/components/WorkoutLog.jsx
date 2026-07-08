@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { DOW_NAMES, pad } from '../utils/workHours';
 import { newId } from '../utils/id';
+import HealthConnectPanel from './HealthConnectPanel';
 import {
   ICON,
   LABEL,
@@ -247,6 +248,11 @@ export default function WorkoutLog() {
             추가
           </button>
         </div>
+      </div>
+
+      {/* 선택한 날짜의 삼성 헬스(Health Connect) 걸음·운동 — 네이티브에서만 표시 */}
+      <div style={{ marginTop: '16px' }}>
+        <HealthConnectPanel date={selected} isToday={selected === todayISO} />
       </div>
 
       <p style={styles.footNote}>
