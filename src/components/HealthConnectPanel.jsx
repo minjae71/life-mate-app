@@ -4,6 +4,7 @@ import {
   getWorkoutsForDay,
   healthAvailable,
   isNativePlatform,
+  openHealthConnectSettings,
   openHealthConnectStore,
   requestPermissions,
 } from '../utils/health';
@@ -43,11 +44,11 @@ function hhmm(d) {
 export default function HealthConnectPanel({ date, isToday }) {
   const [available, setAvailable] = useState(null); // null=확인중, false, true
   const [connected, setConnected] = useState(false); // 권한 요청 후 연동됨
-  const [perm, setPerm] = useState({ steps: false, workouts: false });
   const [status, setStatus] = useState('idle'); // idle | loading | ok | error
   const [steps, setSteps] = useState(null);
   const [workouts, setWorkouts] = useState([]);
   const [error, setError] = useState('');
+  const [workoutError, setWorkoutError] = useState(''); // 운동 세션만 별도 실패한 경우
 
   useEffect(() => {
     let alive = true;
@@ -57,22 +58,27 @@ export default function HealthConnectPanel({ date, isToday }) {
     };
   }, []);
 
+  // 걸음·운동을 독립적으로 조회한다. 한쪽이 실패해도 다른 쪽은 표시하고,
+  // 운동 세션 실패(권한/오류)는 별도 메시지로 구분한다.
   const fetchDay = useCallback(async () => {
     setStatus('loading');
     setError('');
-    try {
-      const [s, w] = await Promise.all([
-        perm.steps ? getStepsForDay(date) : Promise.resolve(null),
-        perm.workouts ? getWorkoutsForDay(date) : Promise.resolve([]),
-      ]);
-      setSteps(s);
-      setWorkouts(w);
-      setStatus('ok');
-    } catch (e) {
-      setStatus('error');
-      setError(e?.message || '가져오기에 실패했습니다.');
+    setWorkoutError('');
+    const [sRes, wRes] = await Promise.allSettled([getStepsForDay(date), getWorkoutsForDay(date)]);
+    setSteps(sRes.status === 'fulfilled' ? sRes.value : null);
+    if (wRes.status === 'fulfilled') {
+      setWorkouts(wRes.value);
+    } else {
+      setWorkouts([]);
+      setWorkoutError(wRes.reason?.message || '운동 세션을 불러오지 못했습니다.');
     }
-  }, [date, perm]);
+    if (sRes.status === 'rejected' && wRes.status === 'rejected') {
+      setStatus('error');
+      setError(sRes.reason?.message || '가져오기에 실패했습니다.');
+    } else {
+      setStatus('ok');
+    }
+  }, [date]);
 
   // 연동된 상태에서 선택 날짜(date)가 바뀌면 그 날 데이터를 다시 조회
   useEffect(() => {
@@ -89,7 +95,6 @@ export default function HealthConnectPanel({ date, isToday }) {
         setError('걸음·운동 읽기 권한이 허용되지 않았습니다. Health Connect에서 권한을 확인하세요.');
         return;
       }
-      setPerm(p);
       setConnected(true); // 이후 effect가 선택 날짜 데이터를 불러옵니다.
     } catch (e) {
       setStatus('error');
@@ -158,8 +163,23 @@ export default function HealthConnectPanel({ date, isToday }) {
           <div style={styles.wLabel}>{dayLabel} 운동</div>
           {loading ? (
             <p style={styles.hint}>불러오는 중…</p>
+          ) : workoutError ? (
+            <>
+              <p style={styles.error}>운동 세션을 불러오지 못했습니다: {workoutError}</p>
+              <button style={styles.ghostBtn} onClick={openHealthConnectSettings}>
+                Health Connect 권한 설정 열기
+              </button>
+            </>
           ) : workouts.length === 0 ? (
-            <p style={styles.hint}>이 날의 운동 세션이 없습니다.</p>
+            <>
+              <p style={styles.hint}>
+                이 날의 운동 세션이 없습니다. 삼성 헬스의 운동 기록이 Health Connect로 동기화됐는지,
+                ‘운동(Exercise)’ 읽기 권한이 허용됐는지 확인하세요.
+              </p>
+              <button style={styles.ghostBtn} onClick={openHealthConnectSettings}>
+                Health Connect 설정 열기
+              </button>
+            </>
           ) : (
             <ul style={styles.list}>
               {workouts.map((w, i) => (

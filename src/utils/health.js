@@ -26,9 +26,14 @@ export async function requestPermissions() {
   await Health.requestHealthPermissions({ permissions: PERMISSIONS });
   try {
     const res = await Health.checkHealthPermissions({ permissions: PERMISSIONS });
-    const list = res?.permissions || [];
-    // [{ READ_STEPS: true }, ...] 형태를 하나로 합쳐 확인
-    const granted = Object.assign({}, ...list);
+    // 런타임 반환은 { READ_STEPS: true, READ_WORKOUTS: false } 형태의 객체다.
+    // (플러그인 타입 정의는 배열이라 어긋남) — 객체·배열 모두 안전하게 처리.
+    const p = res?.permissions;
+    const granted = Array.isArray(p)
+      ? Object.assign({}, ...p)
+      : p && typeof p === 'object'
+        ? p
+        : {};
     return { steps: !!granted.READ_STEPS, workouts: !!granted.READ_WORKOUTS };
   } catch {
     return { steps: true, workouts: true }; // 확인 실패 시 요청은 됐으므로 낙관적으로
@@ -58,6 +63,7 @@ export async function getWorkoutsForDay(iso) {
     endDate: end.toISOString(),
     includeHeartRate: false,
     includeRoute: false,
+    includeSteps: false, // 플러그인 7.0.0 필수 파라미터
   });
   const workouts = res?.workouts || [];
   return [...workouts].sort((a, b) => (a.startDate < b.startDate ? 1 : -1));
@@ -67,6 +73,15 @@ export async function getWorkoutsForDay(iso) {
 export async function openHealthConnectStore() {
   try {
     await Health.showHealthConnectInPlayStore();
+  } catch {
+    /* 무시 */
+  }
+}
+
+// Health Connect 앱(권한 관리 화면) 열기 — 운동 권한 재확인/허용용
+export async function openHealthConnectSettings() {
+  try {
+    await Health.openHealthConnectSettings();
   } catch {
     /* 무시 */
   }
