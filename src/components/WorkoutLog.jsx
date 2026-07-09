@@ -7,6 +7,7 @@ import {
   LABEL,
   LOG_KEY,
   PLAN_KEY,
+  REST,
   SHORT,
   displayType,
   flip,
@@ -155,8 +156,12 @@ export default function WorkoutLog() {
                 <span
                   style={{
                     ...styles.badge,
-                    background: done ? 'var(--purple)' : 'var(--purple-chip-bg)',
-                    color: done ? '#fff' : 'var(--purple)',
+                    ...(rec.type === REST
+                      ? styles.badgeRest
+                      : {
+                          background: done ? 'var(--purple)' : 'var(--purple-chip-bg)',
+                          color: done ? '#fff' : 'var(--purple)',
+                        }),
                   }}
                 >
                   {SHORT[rec.type]}
@@ -184,7 +189,7 @@ export default function WorkoutLog() {
 
         {/* 종목 선택 */}
         <div style={styles.typeRow}>
-          {['upper', 'lower'].map((t) => (
+          {['upper', 'lower', REST].map((t) => (
             <button
               key={t}
               onClick={() => setType(t)}
@@ -198,56 +203,64 @@ export default function WorkoutLog() {
           ))}
         </div>
 
-        <div style={{ ...styles.hint, ...(selDone ? styles.hintDone : {}) }}>
-          {selExercises.length === 0
-            ? '아래에서 종목을 추가하세요.'
-            : selDone
-              ? `완료! 다음 운동은 ${LABEL[flip(selType)]} 추천.`
-              : `${LABEL[selType]} 운동 · 하나는 쉬어도 완료 (완료 시 다음은 ${LABEL[flip(selType)]} 추천)`}
-        </div>
+        {selType === REST ? (
+          <div style={styles.restNotice}>
+            💤 오늘은 쉬는 날. 근육 회복도 운동의 일부예요. 상체·하체 로테이션엔 영향을 주지 않습니다.
+          </div>
+        ) : (
+          <>
+            <div style={{ ...styles.hint, ...(selDone ? styles.hintDone : {}) }}>
+              {selExercises.length === 0
+                ? '아래에서 종목을 추가하세요.'
+                : selDone
+                  ? `완료! 다음 운동은 ${LABEL[flip(selType)]} 추천.`
+                  : `${LABEL[selType]} 운동 · 하나는 쉬어도 완료 (완료 시 다음은 ${LABEL[flip(selType)]} 추천)`}
+            </div>
 
-        {/* 종목 체크리스트 */}
-        <ul style={styles.list}>
-          {selExercises.map((e) => {
-            const checked = selDoneIds.includes(e.id);
-            const isRest = e.id === restId && !checked;
-            return (
-              <li key={e.id} style={{ ...styles.item, ...(isRest ? styles.itemRest : {}) }}>
-                <label style={styles.check}>
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleEx(e.id)}
-                    style={styles.checkbox}
-                  />
-                  <span style={{ ...styles.text, ...(checked ? styles.textDone : {}) }}>
-                    {e.text}
-                  </span>
-                  {isRest && <span style={styles.restTag}>오늘 쉬어도 OK</span>}
-                </label>
-                <button onClick={() => removeExercise(e.id)} style={styles.delBtn}>
-                  삭제
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+            {/* 종목 체크리스트 */}
+            <ul style={styles.list}>
+              {selExercises.map((e) => {
+                const checked = selDoneIds.includes(e.id);
+                const isRest = e.id === restId && !checked;
+                return (
+                  <li key={e.id} style={{ ...styles.item, ...(isRest ? styles.itemRest : {}) }}>
+                    <label style={styles.check}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleEx(e.id)}
+                        style={styles.checkbox}
+                      />
+                      <span style={{ ...styles.text, ...(checked ? styles.textDone : {}) }}>
+                        {e.text}
+                      </span>
+                      {isRest && <span style={styles.restTag}>오늘 쉬어도 OK</span>}
+                    </label>
+                    <button onClick={() => removeExercise(e.id)} style={styles.delBtn}>
+                      삭제
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
 
-        <div style={styles.addRow}>
-          <input
-            type="text"
-            value={text}
-            placeholder={`${LABEL[selType]} 종목 추가`}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') addExercise();
-            }}
-            style={styles.input}
-          />
-          <button onClick={addExercise} disabled={!text.trim()} style={styles.addBtn}>
-            추가
-          </button>
-        </div>
+            <div style={styles.addRow}>
+              <input
+                type="text"
+                value={text}
+                placeholder={`${LABEL[selType]} 종목 추가`}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') addExercise();
+                }}
+                style={styles.input}
+              />
+              <button onClick={addExercise} disabled={!text.trim()} style={styles.addBtn}>
+                추가
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* 선택한 날짜의 삼성 헬스(Health Connect) 걸음·운동 — 네이티브에서만 표시 */}
@@ -312,6 +325,10 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  badgeRest: {
+    background: 'var(--border)',
+    color: 'var(--text-muted)',
+  },
   badgeEmpty: { width: '18px', height: '18px' },
   detail: {
     marginTop: '16px',
@@ -364,6 +381,16 @@ const styles = {
   },
   hint: { fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' },
   hintDone: { color: 'var(--success)', fontWeight: 600 },
+  restNotice: {
+    fontSize: '14px',
+    color: 'var(--text-body)',
+    lineHeight: 1.6,
+    padding: '18px 14px',
+    textAlign: 'center',
+    background: 'var(--surface)',
+    borderRadius: '10px',
+    border: '1px solid var(--border)',
+  },
   list: { listStyle: 'none', padding: 0, margin: 0 },
   item: {
     display: 'flex',

@@ -14,6 +14,7 @@ import DateCalculator from './components/DateCalculator';
 import LoanMemo from './components/LoanMemo';
 import InstaUnfollowChecker from './components/InstaUnfollowChecker';
 import LottoGenerator from './components/LottoGenerator';
+import CareerLog from './components/CareerLog';
 
 // 앱 메뉴 목록. 기능을 추가하려면 여기에 항목(+ Component)을 늘리면 됩니다.
 const MENUS = [
@@ -93,6 +94,13 @@ const MENUS = [
     title: '로또/연금복권 번호 생성',
     desc: '랜덤·통계·생일·AI · 실회차 통계 내장 · 기기 내 처리',
     Component: LottoGenerator,
+  },
+  {
+    id: 'career',
+    icon: '📄',
+    title: '경력 관리',
+    desc: '수행처·프로젝트·기간·직무·기술 기록',
+    Component: CareerLog,
   },
 ];
 

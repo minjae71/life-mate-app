@@ -9,9 +9,10 @@ export { toISO };
 
 export const PLAN_KEY = 'workout:plan';
 export const LOG_KEY = 'workout:log';
-export const LABEL = { upper: '상체', lower: '하체' };
-export const SHORT = { upper: '상', lower: '하' };
-export const ICON = { upper: '💪', lower: '🦵' };
+export const REST = 'rest';
+export const LABEL = { upper: '상체', lower: '하체', rest: '쉬는날' };
+export const SHORT = { upper: '상', lower: '하', rest: '휴' };
+export const ICON = { upper: '💪', lower: '🦵', rest: '💤' };
 
 export function flip(type) {
   return type === 'upper' ? 'lower' : 'upper';
@@ -53,6 +54,7 @@ export function loadLog() {
 // 종목이 여러 개면 하나는 빼먹어도(예: 4개 중 3개) 완료로 인정합니다.
 export function isDayDone(record, plan) {
   if (!record) return false;
+  if (record.type === REST) return true; // 쉬는날은 그 자체로 완료(로테이션엔 영향 없음)
   const list = plan[record.type] || [];
   if (list.length === 0) return false;
   const doneCount = list.filter((e) => record.doneIds.includes(e.id)).length;
@@ -81,8 +83,9 @@ export function restExerciseId(log, iso, type, plan) {
 
 // 특정 날짜의 추천 종목: 직전 기록일이 완료면 반대, 미완료면 같은 부위. 없으면 상체.
 export function suggestedType(log, iso, plan) {
+  // 쉬는날은 로테이션 판단에서 건너뜁니다.
   const prevDates = Object.keys(log)
-    .filter((d) => d < iso)
+    .filter((d) => d < iso && log[d]?.type !== REST)
     .sort();
   if (prevDates.length === 0) return 'upper';
   const last = log[prevDates[prevDates.length - 1]];
