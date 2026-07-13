@@ -3,6 +3,7 @@
 // localStorage에 저장됩니다. 터치 기기(안드로이드)에서도 동작하도록 HTML5 드래그가
 // 아니라 Pointer Events 로 구현했습니다.
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { loadJSON, saveJSON } from '../utils/storage';
 
 // 기능별 아이콘 원의 강조색 (반투명이라 라이트/다크 모두 자연스럽게 얹힙니다)
 const ACCENTS = {
@@ -22,15 +23,11 @@ const ACCENTS = {
 const ORDER_KEY = 'home:menuOrder';
 
 function loadOrderIds() {
-  try {
-    const arr = JSON.parse(localStorage.getItem(ORDER_KEY));
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
-  }
+  const arr = loadJSON(ORDER_KEY, null);
+  return Array.isArray(arr) ? arr : [];
 }
 function saveOrderIds(ids) {
-  localStorage.setItem(ORDER_KEY, JSON.stringify(ids));
+  saveJSON(ORDER_KEY, ids);
 }
 
 // 저장된 순서를 현재 메뉴에 적용. 저장에 없는(새로 추가된) 기능은 원래 순서로 뒤에 붙이고,

@@ -4,6 +4,7 @@
 //   프리미엄 PC방 30% · TOP CLASS 20% · 쿠폰 %(줄별 또는 일괄)
 //   예) PC방+TOP CLASS = 수수료의 50% 할인 → 실질 수수료 = 40% × (1-0.5) = 판매가의 20%
 // 판매 금액은 공식 사이트와 동일하게 "억 BP" 단위로 입력합니다. (1억 BP = 100,000,000)
+import { loadJSON, saveJSON } from './storage.js';
 
 export const BASE_FEE_RATE = 0.4; // 40%
 export const PCBANG_PCT = 30; // 프리미엄 PC방: 수수료 30% 할인
@@ -69,14 +70,10 @@ export function computeAll(rows, ctx) {
 }
 
 export function loadState() {
-  try {
-    return JSON.parse(localStorage.getItem(STATE_KEY)) || {};
-  } catch {
-    return {};
-  }
+  return loadJSON(STATE_KEY, {});
 }
 export function saveState(state) {
-  localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  saveJSON(STATE_KEY, state);
 }
 
 export function fmtBp(n) {

@@ -7,6 +7,8 @@
 //  - 팔로잉: { relationships_following: [...] }
 // (팔로워가 많으면 followers_1, followers_2 ... 로 나뉠 수 있음)
 
+import { loadJSON, saveJSON } from './storage.js';
+
 // href에서 사용자명 추출 (예: https://www.instagram.com/_u/name → name)
 function usernameFromHref(href) {
   if (!href) return '';
@@ -114,15 +116,11 @@ export const SNAPSHOTS_KEY = 'insta:snapshots';
 const MAX_SNAPSHOTS = 20;
 
 export function loadSnapshots() {
-  try {
-    return JSON.parse(localStorage.getItem(SNAPSHOTS_KEY)) || [];
-  } catch {
-    return [];
-  }
+  return loadJSON(SNAPSHOTS_KEY, []);
 }
 
 export function saveSnapshots(list) {
-  localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(list));
+  saveJSON(SNAPSHOTS_KEY, list);
 }
 
 // 사용자 배열 → 스냅샷 { at, followers:[아이디], following:[아이디] } (중복 제거)

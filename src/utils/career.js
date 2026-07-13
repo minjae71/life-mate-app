@@ -4,15 +4,13 @@
 // 서버 없이 이 기기(localStorage)에 저장하는 형태로 이식한 것입니다.
 // 수행처·관련 기술은 공통코드 대신 자유 입력으로 처리합니다.
 
+import { loadJSON } from './storage.js';
+
 export const CAREER_KEY = 'career:list';
 
 export function loadCareers() {
-  try {
-    const arr = JSON.parse(localStorage.getItem(CAREER_KEY));
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
-  }
+  const arr = loadJSON(CAREER_KEY, null);
+  return Array.isArray(arr) ? arr : [];
 }
 
 // 연도 선택지: 올해 → 1980년 (내림차순)

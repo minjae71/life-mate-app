@@ -5,6 +5,7 @@
 import { CapacitorHttp, Capacitor } from '@capacitor/core';
 import snapshot from '../data/lottoStats.json';
 import { LOTTO, PENSION } from './lotto';
+import { loadJSON, saveJSON } from './storage.js';
 
 export const EXTRA_DRAWS_KEY = 'lotto:extraDraws';
 export const GEN_HISTORY_KEY = 'lotto:genHistory';
@@ -13,16 +14,12 @@ const BASE = 'https://www.dhlottery.co.kr';
 
 // ---- 생성 기록 (내가 뽑은 번호) --------------------------------------------
 export function loadGenHistory() {
-  try {
-    const arr = JSON.parse(localStorage.getItem(GEN_HISTORY_KEY));
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
-  }
+  const arr = loadJSON(GEN_HISTORY_KEY, null);
+  return Array.isArray(arr) ? arr : [];
 }
 
 export function saveGenHistory(list) {
-  localStorage.setItem(GEN_HISTORY_KEY, JSON.stringify(list));
+  saveJSON(GEN_HISTORY_KEY, list);
 }
 
 // generate() 결과를 기록에 추가(최신이 앞). 반환: 갱신된 목록.
@@ -50,19 +47,15 @@ export function clearGenHistory() {
 // ---- 추가 회차 저장소 (수동 + 자동 통합, drawNo 로 중복 제거) -----------------
 // 저장 형태: { lotto: [{drawNo, numbers:[6], bonus, date, source}], pension: [{drawNo, group, serial, date, source}] }
 export function loadExtraDraws() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(EXTRA_DRAWS_KEY));
-    return {
-      lotto: Array.isArray(parsed?.lotto) ? parsed.lotto : [],
-      pension: Array.isArray(parsed?.pension) ? parsed.pension : [],
-    };
-  } catch {
-    return { lotto: [], pension: [] };
-  }
+  const parsed = loadJSON(EXTRA_DRAWS_KEY, null);
+  return {
+    lotto: Array.isArray(parsed?.lotto) ? parsed.lotto : [],
+    pension: Array.isArray(parsed?.pension) ? parsed.pension : [],
+  };
 }
 
 export function saveExtraDraws(extra) {
-  localStorage.setItem(EXTRA_DRAWS_KEY, JSON.stringify(extra));
+  saveJSON(EXTRA_DRAWS_KEY, extra);
 }
 
 // 스냅샷 최신 회차 이하의 것은 이미 반영돼 있으므로 무시한다.

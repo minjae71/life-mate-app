@@ -8,16 +8,13 @@ import {
   workedSeconds,
 } from '../utils/workHours';
 import { getMergedHolidays } from '../utils/holidays';
+import { loadJSON } from '../utils/storage';
 
 const ENTRIES_KEY = 'workhours:entries';
 const BREAK_KEY = 'workhours:break';
 
 function loadEntries() {
-  try {
-    return JSON.parse(localStorage.getItem(ENTRIES_KEY)) || {};
-  } catch {
-    return {};
-  }
+  return loadJSON(ENTRIES_KEY, {});
 }
 function loadBreak() {
   const v = Number(localStorage.getItem(BREAK_KEY));

@@ -1,15 +1,13 @@
 // 정산 관리: 사람별로 상세 내역(날짜·내용·금액)을 모아 합산합니다.
+import { loadJSON, saveJSON } from './storage.js';
+
 export const PEOPLE_KEY = 'loan:people';
 
 export function loadPeople() {
-  try {
-    return JSON.parse(localStorage.getItem(PEOPLE_KEY)) || [];
-  } catch {
-    return [];
-  }
+  return loadJSON(PEOPLE_KEY, []);
 }
 export function savePeople(people) {
-  localStorage.setItem(PEOPLE_KEY, JSON.stringify(people));
+  saveJSON(PEOPLE_KEY, people);
 }
 
 // 한 사람의 상세 내역 합계

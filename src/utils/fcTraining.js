@@ -1,6 +1,7 @@
 // FC온라인 훈련 관리 데이터 계층.
 // 포메이션별로 선수 행(선수명/오버롤/훈련코치/등급)을 저장하고, 행마다 집중훈련
 // (능력치 최대 5개, 각 +1~+2)을 기록합니다. 모든 데이터는 이 기기(localStorage)에만 저장.
+import { loadJSON, saveJSON } from './storage.js';
 
 export const TRAINING_KEY = 'fc:training';
 export const ABILITIES_KEY = 'fc:abilities';
@@ -42,17 +43,12 @@ export function defaultAbilities() {
 }
 
 export function loadAbilities() {
-  try {
-    const arr = JSON.parse(localStorage.getItem(ABILITIES_KEY));
-    if (Array.isArray(arr) && arr.length) return arr;
-  } catch {
-    /* 무시 */
-  }
-  return defaultAbilities();
+  const arr = loadJSON(ABILITIES_KEY, null);
+  return Array.isArray(arr) && arr.length ? arr : defaultAbilities();
 }
 
 export function saveAbilities(list) {
-  localStorage.setItem(ABILITIES_KEY, JSON.stringify(list));
+  saveJSON(ABILITIES_KEY, list);
 }
 
 // 능력치 카테고리 표시 순서
@@ -81,26 +77,22 @@ export function emptyRowsFor(formationId) {
 }
 
 export function loadTraining() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(TRAINING_KEY));
-    if (parsed && typeof parsed === 'object') {
-      return {
-        selectedFormation: parsed.selectedFormation || FORMATIONS[0].id,
-        byFormation: parsed.byFormation && typeof parsed.byFormation === 'object' ? parsed.byFormation : {},
-        orderByFormation:
-          parsed.orderByFormation && typeof parsed.orderByFormation === 'object'
-            ? parsed.orderByFormation
-            : {},
-      };
-    }
-  } catch {
-    /* 무시 */
+  const parsed = loadJSON(TRAINING_KEY, null);
+  if (parsed && typeof parsed === 'object') {
+    return {
+      selectedFormation: parsed.selectedFormation || FORMATIONS[0].id,
+      byFormation: parsed.byFormation && typeof parsed.byFormation === 'object' ? parsed.byFormation : {},
+      orderByFormation:
+        parsed.orderByFormation && typeof parsed.orderByFormation === 'object'
+          ? parsed.orderByFormation
+          : {},
+    };
   }
   return { selectedFormation: FORMATIONS[0].id, byFormation: {}, orderByFormation: {} };
 }
 
 export function saveTraining(state) {
-  localStorage.setItem(TRAINING_KEY, JSON.stringify(state));
+  saveJSON(TRAINING_KEY, state);
 }
 
 // 포메이션의 행 목록을 가져오되, 없거나 길이가 안 맞으면 포지션 수에 맞춰 보정.

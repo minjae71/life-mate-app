@@ -1,5 +1,21 @@
-import { useMemo, useState } from 'react';
-import { addToDate, diffDays, labelWithDow, toISO } from '../utils/dateCalc';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  addToDate,
+  ddayInfo,
+  diffDays,
+  isoLabelWithDow,
+  labelWithDow,
+  toISO,
+} from '../utils/dateCalc';
+import { newId } from '../utils/id';
+import { loadJSON } from '../utils/storage';
+
+const ANNIV_KEY = 'datecalc:anniversaries';
+
+function loadAnniversaries() {
+  const arr = loadJSON(ANNIV_KEY, null);
+  return Array.isArray(arr) ? arr : [];
+}
 
 const UNITS = [
   { id: 'day', label: '일' },
@@ -30,6 +46,31 @@ export default function DateCalculator() {
 
   const resultDate = addToDate(base, amount * dir, unit);
 
+  // 기념일
+  const [annivs, setAnnivs] = useState(loadAnniversaries);
+  const [annivName, setAnnivName] = useState('');
+  const [annivDate, setAnnivDate] = useState(today);
+  const [annivRepeat, setAnnivRepeat] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem(ANNIV_KEY, JSON.stringify(annivs));
+  }, [annivs]);
+
+  function addAnniv() {
+    const name = annivName.trim();
+    if (!name || !annivDate) return;
+    setAnnivs((prev) => [
+      { id: newId(), name, date: annivDate, repeat: annivRepeat },
+      ...prev,
+    ]);
+    setAnnivName('');
+    setAnnivDate(today);
+    setAnnivRepeat(false);
+  }
+  function removeAnniv(id) {
+    setAnnivs((prev) => prev.filter((a) => a.id !== id));
+  }
+
   return (
     <section style={styles.section}>
       <div style={styles.segmented}>
@@ -44,6 +85,12 @@ export default function DateCalculator() {
           style={{ ...styles.segBtn, ...(tab === 'add' ? styles.segBtnActive : {}) }}
         >
           날짜 더하기/빼기
+        </button>
+        <button
+          onClick={() => setTab('anniv')}
+          style={{ ...styles.segBtn, ...(tab === 'anniv' ? styles.segBtnActive : {}) }}
+        >
+          기념일 D-day
         </button>
       </div>
 
@@ -83,7 +130,7 @@ export default function DateCalculator() {
             )}
           </div>
         </>
-      ) : (
+      ) : tab === 'add' ? (
         <>
           <div style={styles.card}>
             <div style={styles.field}>
@@ -135,6 +182,89 @@ export default function DateCalculator() {
             </div>
             <div style={styles.resultBig}>{labelWithDow(resultDate)}</div>
           </div>
+        </>
+      ) : (
+        <>
+          {/* 기념일 등록 */}
+          <div style={styles.card}>
+            <div style={styles.field}>
+              <label style={styles.label}>이름</label>
+              <input
+                type="text"
+                value={annivName}
+                placeholder="예: 사귄 날, 생일, 시험일"
+                onChange={(e) => setAnnivName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') addAnniv();
+                }}
+                style={styles.dateInput}
+              />
+            </div>
+            <div style={styles.field}>
+              <label style={styles.label}>날짜</label>
+              <input
+                type="date"
+                value={annivDate}
+                onChange={(e) => setAnnivDate(e.target.value)}
+                style={styles.dateInput}
+              />
+            </div>
+            <label style={styles.checkRow}>
+              <input
+                type="checkbox"
+                checked={annivRepeat}
+                onChange={(e) => setAnnivRepeat(e.target.checked)}
+              />
+              매년 반복 (생일·기념일 — 다음 기념일까지 표시)
+            </label>
+            <button
+              onClick={addAnniv}
+              disabled={!annivName.trim() || !annivDate}
+              style={styles.annivAddBtn}
+            >
+              기념일 등록
+            </button>
+          </div>
+
+          {/* 기념일 목록 */}
+          {annivs.length === 0 ? (
+            <div style={styles.annivEmpty}>등록된 기념일이 없습니다. 위에서 추가하세요.</div>
+          ) : (
+            <ul style={styles.annivList}>
+              {annivs.map((a) => {
+                const info = ddayInfo(a.date, a.repeat);
+                return (
+                  <li key={a.id} style={styles.annivCard}>
+                    <div style={styles.annivInfo}>
+                      <div style={styles.annivName}>
+                        {a.name}
+                        {a.repeat && <span style={styles.repeatTag}>매년</span>}
+                      </div>
+                      <div style={styles.annivDate}>{isoLabelWithDow(a.date)}</div>
+                    </div>
+                    <div style={styles.annivRight}>
+                      <div
+                        style={{
+                          ...styles.dday,
+                          ...(info?.dir === 'day'
+                            ? styles.ddayToday
+                            : info?.dir === 'past'
+                              ? styles.ddayPast
+                              : styles.ddayFuture),
+                        }}
+                      >
+                        {info?.main ?? '-'}
+                      </div>
+                      {info?.sub && <div style={styles.ddaySub}>{info.sub}</div>}
+                    </div>
+                    <button onClick={() => removeAnniv(a.id)} style={styles.annivDel}>
+                      ×
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </>
       )}
     </section>
@@ -253,4 +383,71 @@ const styles = {
   },
   resultSub: { fontSize: '14px', color: 'var(--text-muted)', marginTop: '6px' },
   note: { fontSize: '12px', color: 'var(--text-faint)', marginTop: '10px' },
+  annivAddBtn: {
+    width: '100%',
+    padding: '11px 0',
+    fontSize: '14px',
+    fontWeight: 700,
+    borderRadius: '8px',
+    border: 'none',
+    background: 'var(--accent)',
+    color: '#fff',
+    cursor: 'pointer',
+    marginTop: '6px',
+  },
+  annivEmpty: {
+    padding: '28px 16px',
+    textAlign: 'center',
+    fontSize: '14px',
+    color: 'var(--text-muted)',
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+    borderRadius: '14px',
+  },
+  annivList: { listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' },
+  annivCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '14px',
+    borderRadius: '14px',
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+  },
+  annivInfo: { flex: 1, minWidth: 0 },
+  annivName: {
+    fontSize: '15px',
+    fontWeight: 700,
+    color: 'var(--text)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  repeatTag: {
+    fontSize: '10px',
+    fontWeight: 700,
+    color: 'var(--accent)',
+    background: 'var(--accent-chip-bg)',
+    borderRadius: '4px',
+    padding: '1px 5px',
+  },
+  annivDate: { fontSize: '12px', color: 'var(--text-muted)', marginTop: '3px' },
+  annivRight: { textAlign: 'right', minWidth: '68px' },
+  dday: { fontSize: '20px', fontWeight: 800, fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 },
+  ddayToday: { color: 'var(--danger)' },
+  ddayPast: { color: 'var(--accent)' },
+  ddayFuture: { color: 'var(--purple)' },
+  ddaySub: { fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' },
+  annivDel: {
+    width: '28px',
+    height: '28px',
+    flexShrink: 0,
+    fontSize: '18px',
+    lineHeight: 1,
+    borderRadius: '6px',
+    border: '1px solid var(--border)',
+    background: 'var(--surface)',
+    color: 'var(--text-faint)',
+    cursor: 'pointer',
+  },
 };

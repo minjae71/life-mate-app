@@ -3,6 +3,7 @@
 // MVP 등급은 "최근 13주 누적 캐시 결제 금액"으로 산정됩니다. (2025-12-18부터 3개월→13주)
 // 넥슨이 공식 기준 금액을 공개하지 않으므로, 아래 기본값은 통상 알려진 추정치이며
 // 사용자가 화면에서 직접 수정할 수 있습니다. (게임 내 MVP UI 값 기준으로 보정)
+import { loadJSON, saveJSON } from './storage.js';
 
 export const GRADES_KEY = 'maple:mvp:grades';
 export const STATE_KEY = 'maple:mvp:state';
@@ -19,34 +20,26 @@ export const DEFAULT_GRADES = [
 
 // 저장된 사용자 기준값을 기본 정의(이름/색) 위에 병합해서 반환
 export function loadGrades() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(GRADES_KEY));
-    if (Array.isArray(saved) && saved.length) {
-      return DEFAULT_GRADES.map((g) => {
-        const s = saved.find((x) => x.id === g.id);
-        return s && Number.isFinite(s.threshold) ? { ...g, threshold: s.threshold } : g;
-      });
-    }
-  } catch {
-    /* ignore */
+  const saved = loadJSON(GRADES_KEY, null);
+  if (Array.isArray(saved) && saved.length) {
+    return DEFAULT_GRADES.map((g) => {
+      const s = saved.find((x) => x.id === g.id);
+      return s && Number.isFinite(s.threshold) ? { ...g, threshold: s.threshold } : g;
+    });
   }
   return DEFAULT_GRADES;
 }
 
 export function saveGrades(grades) {
   const slim = grades.map(({ id, threshold }) => ({ id, threshold }));
-  localStorage.setItem(GRADES_KEY, JSON.stringify(slim));
+  saveJSON(GRADES_KEY, slim);
 }
 
 export function loadState() {
-  try {
-    return JSON.parse(localStorage.getItem(STATE_KEY)) || {};
-  } catch {
-    return {};
-  }
+  return loadJSON(STATE_KEY, {});
 }
 export function saveState(state) {
-  localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  saveJSON(STATE_KEY, state);
 }
 
 /**

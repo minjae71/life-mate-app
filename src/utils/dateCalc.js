@@ -37,3 +37,42 @@ export function labelWithDow(date) {
   if (!date) return '-';
   return `${toISO(date)} (${DOW_NAMES[date.getDay()]})`;
 }
+
+// ISO 문자열 → "YYYY-MM-DD (요일)" (날짜 문자열용 편의)
+export function isoLabelWithDow(iso) {
+  return labelWithDow(parseISO(iso));
+}
+
+// 오늘(로컬 자정) Date
+export function todayDate() {
+  const n = new Date();
+  return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+}
+
+// 기념일 D-day 정보.
+// repeat=false: 등록일 기준. 지난 날은 D+N(오늘이 N+1일째), 미래는 D-N, 당일 D-DAY.
+// repeat=true : 매년 돌아오는 "다음" 기념일까지 D-N, 당일이면 D-DAY. 몇 주년인지 함께 표시.
+// 반환 { main, sub, dir }  dir: 'past' | 'future' | 'day'
+export function ddayInfo(iso, repeat) {
+  const target = parseISO(iso);
+  if (!target) return null;
+  const today = todayDate();
+
+  if (repeat) {
+    const y = today.getFullYear();
+    let next = new Date(y, target.getMonth(), target.getDate());
+    if (next < today) next = new Date(y + 1, target.getMonth(), target.getDate());
+    const remain = Math.round((next - today) / MS_PER_DAY);
+    const anniv = next.getFullYear() - target.getFullYear();
+    const annivLabel = anniv >= 1 ? `${anniv}주년` : '';
+    if (remain === 0) {
+      return { main: 'D-DAY', sub: annivLabel ? `${annivLabel} 🎉` : '오늘 🎉', dir: 'day' };
+    }
+    return { main: `D-${remain}`, sub: annivLabel ? `${annivLabel}까지` : null, dir: 'future' };
+  }
+
+  const diff = Math.round((today - target) / MS_PER_DAY);
+  if (diff === 0) return { main: 'D-DAY', sub: '오늘', dir: 'day' };
+  if (diff > 0) return { main: `D+${diff}`, sub: `${diff + 1}일째`, dir: 'past' };
+  return { main: `D-${-diff}`, sub: null, dir: 'future' };
+}

@@ -71,7 +71,7 @@ const MENUS = [
     id: 'datecalc',
     icon: '📆',
     title: '날짜 계산기',
-    desc: '두 날짜 사이 일수 · 기준일 ± 기간 계산',
+    desc: '날짜 간격 · 기준일 ± 기간 · 기념일 D-day',
     Component: DateCalculator,
   },
   {

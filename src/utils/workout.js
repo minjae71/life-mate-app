@@ -2,8 +2,11 @@
 // -----------------------------------------------------------------------------
 // 상체/하체를 번갈아 진행. 날짜별로 종목과 체크 상태를 기록합니다.
 // 어떤 날의 추천 종목 = 직전 기록일이 완료면 반대 부위, 미완료면 같은 부위.
+// 쉬는 종목 로테이션은 "직전에 완료한 같은 부위 날에 실제로 체크한 종목"을
+// 기준으로 이어집니다(날짜 카운트가 아니라 체크 결과 기준).
 
 import { toISO } from './workHours.js';
+import { loadJSON } from './storage.js';
 
 export { toISO };
 
@@ -34,20 +37,11 @@ export const DEFAULT_PLAN = {
 };
 
 export function loadPlan() {
-  try {
-    const p = JSON.parse(localStorage.getItem(PLAN_KEY));
-    if (p && p.upper && p.lower) return p;
-  } catch {
-    /* ignore */
-  }
-  return DEFAULT_PLAN;
+  const p = loadJSON(PLAN_KEY, null);
+  return p && p.upper && p.lower ? p : DEFAULT_PLAN;
 }
 export function loadLog() {
-  try {
-    return JSON.parse(localStorage.getItem(LOG_KEY)) || {};
-  } catch {
-    return {};
-  }
+  return loadJSON(LOG_KEY, {});
 }
 
 // 해당 날짜 기록이 "완료"인지.
@@ -62,22 +56,52 @@ export function isDayDone(record, plan) {
   return doneCount >= need;
 }
 
-// 지금까지 같은 부위를 기록한 날 수(해당 날짜 이전). 로테이션 회차 계산용.
-export function rotationCount(log, iso, type) {
-  return Object.keys(log).filter((d) => d < iso && log[d]?.type === type).length;
+// 완료한 날의 기록에서 실제로 "쉰"(체크 안 한) 종목의 인덱스.
+// 정확히 하나만 빠졌으면 그 인덱스, 다 했거나 애매하면 -1.
+export function skippedIndexOf(record, plan) {
+  const list = plan[record.type] || [];
+  if (list.length <= 1) return -1;
+  const missing = list
+    .map((e, i) => (record.doneIds.includes(e.id) ? -1 : i))
+    .filter((i) => i >= 0);
+  return missing.length === 1 ? missing[0] : -1;
 }
 
-// 이번 회차에 "쉬는(빼는)" 종목의 인덱스. 매 회차마다 마지막→처음으로 이동해
-// 결과적으로 4개면 123 → 124 → 134 → 234 순서로 돌아갑니다. -1이면 뺄 것 없음.
-export function skipIndex(count, len) {
+// 이번 회차에 쉬는 종목의 인덱스. 최근 완료한 같은 부위 3회를 분석해
+// "가장 많이 한 종목"을 쉽니다 → 덜 한(누락·신규) 종목이 자연히 포함됩니다.
+// 동점이면 평소 로테이션 순서(직전에 쉰 것의 다음)를 따르므로, 안정 상태에선
+// 4개 기준 123 → 124 → 134 → 234 → 123 으로 그대로 순환합니다. -1이면 뺄 것 없음.
+export function skipIndex(log, iso, type, plan) {
+  const list = plan[type] || [];
+  const len = list.length;
   if (len <= 1) return -1;
-  return len - 1 - (count % len);
+
+  // 최근 완료한 같은 부위 날들(오래된→최신)
+  const prevDone = Object.keys(log)
+    .filter((d) => d < iso && log[d]?.type === type && isDayDone(log[d], plan))
+    .sort();
+  if (prevDone.length === 0) return len - 1; // 첫 회차: 마지막 종목을 쉼
+
+  // 최근 3회의 종목별 수행 횟수
+  const window = prevDone.slice(-3).map((d) => log[d]);
+  const doneCount = list.map(
+    (e) => window.filter((r) => r.doneIds.includes(e.id)).length
+  );
+  const maxCount = Math.max(...doneCount);
+
+  // 평소 로테이션 후보: 직전에 실제로 쉰 종목의 다음 순서
+  const prevSkip = skippedIndexOf(window[window.length - 1], plan);
+  const rot = prevSkip < 0 ? len - 1 : (prevSkip - 1 + len) % len;
+
+  // 로테이션 후보가 "가장 많이 한 종목"이면 그대로(안정 상태), 아니면 최근
+  // 3회 중 최다 수행 종목을 쉬어 누락된 종목이 이번에 포함되게 합니다.
+  return doneCount[rot] === maxCount ? rot : doneCount.indexOf(maxCount);
 }
 
 // 특정 날짜/부위에서 오늘 쉬어도 되는(추천에서 빠지는) 종목 id. 없으면 null.
 export function restExerciseId(log, iso, type, plan) {
   const list = plan[type] || [];
-  const idx = skipIndex(rotationCount(log, iso, type), list.length);
+  const idx = skipIndex(log, iso, type, plan);
   return idx >= 0 ? (list[idx]?.id ?? null) : null;
 }
 
